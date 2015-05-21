@@ -1,0 +1,130 @@
+---
+title: "Central Limit Theorem comparison for exponential distribution"
+author: "yogarjun77"
+date: "Thursday, May 21, 2015"
+output: html_document
+---
+
+
+**Overview:**   An exponential distribution can be simulated in R using function rexp(n, lambda) where n is the rate parameter. Theoretically, both the mean and standard 
+deviation of an exponential distribution is 1/lambda. A sample of 1000 simulations of the averages of 40 exponentials are generated and in this experiment and compared with the theoretical values and normal distribution.  
+
+
+**Preparation: **  
+a. Load libraries and determine parameters to be used
+```{r preliminaries}
+library(ggplot2)
+
+
+lambda = 0.2  
+n = 40  
+sim = 1000 #total simulations  
+set.seed(333)
+```  
+b. Simulation of sample distribution
+
+```{r sample distribution}  
+set.seed(333)  
+exp2 = NULL   
+for (i in 1 :sim){  
+exp2 = c(exp2, mean(rexp(n,lambda)))  
+}  
+
+head(exp2)  
+length(exp2)  
+```
+**1 - Sample mean vs Theoretical Mean**  
+Mean of sample set of 1000 averages of 40 exponentials  
+```{r sample mean}
+  
+        mean_exp2 <- round(mean(exp2),3)
+        print(mean_exp2)  
+```  
+Theoretical mean(population mean)
+```{r theoretical mean}  
+        mean_pop <- round(1/lambda, 3)
+        print(mean_pop)  
+```  
+The sample mean (5.045) is almost equal to the theoretical value(5.000), fulfilling the first condition for Central Limit Theorem E[X] = µ.
+
+**2 - Sample Variance vs Theoretical Variance**  
+
+Variance of sample set of 1000 averages of 40 exponentials:  
+```{r sample var}  
+        var_exp2 <- round(var(exp2),3)  
+        print(var_exp2)  
+```  
+
+Theoretical variance (population variance) =  sigma^2^/n  
+```{r theoretical var}  
+        var_exp2 <- (round((((1/lambda)^2)/n),3))  
+        print(var_exp2)  
+```  
+
+Again, the sample variance is almost equal to the theoretical value, fulfilling the second condition for CLT:     
+                        Var[X] = sigma^2^/n  
+
+
+**3 - Proving that the distribution is approximately normal**  
+
+a)Comparing with a distribution of 1000 exponentials - would it be similar to a normal distribution?  
+
+Create a sample distribution of 1000 exponentials
+
+```{r 1000 exp}
+set.seed(333)
+exp_th <- rexp(1000, 0.2) 
+hist(exp_th, col = "lightgreen", xlab = "Value", ylab = "frequency", main = "1000 exponential distribution")  
+```  
+  
+
+
+Histogram for 1000 averages of 40 exponentials
+```{r hist exp2}
+hist(exp2, col = "lightblue", xlab = "value", ylab = "frequency", main = "Distribution of 1000 averages of 40 exponentials")
+```
+
+Mean & Variance of 1000 exponential 
+
+```{r 1000 exp var and mean}
+round(mean(exp_th),3)
+round(var(exp_th)/1000, 3)
+```
+
+The histogram and variance values show that a distribution of 1000 exponentials are not similar to a normal distribution.  
+
+
+b) Histogram of 1000 averages of 40 exponentials mapped onto a normal distribution
+
+```{r histogram map normal}
+hist(exp2, col= "lightblue", breaks = "sturges", freq = FALSE, main = "Sample distribution and density curve")
+abline (v=mean_exp2, col = "darkblue", lwd = 2)
+text(mean_exp2,0.4, mean_exp2)
+lines(density(exp2), col="darkblue")
+```  
+
+The distribution exhibits a Gaussian shape almost similar to a normal distribution.  
+  
+    
+c) Normal Q-Q plot  
+
+```{r qqnorm}  
+qqnorm(exp2, col = "darkblue")   
+qqline(exp2, col = "black")  
+```  
+  
+  
+A Q-Q (quantile-quantile) plot is more effective to test if a sample is normally distributed. The resulting plots show that the normalized exp_2 (circles) closely fit the theoretical default normal (line).  
+
+
+**Conclusion**  
+The sample fulfilled 2 key conditions for the Central Limit Theorem Criteria  
+
+a) E[X]=µ  
+b) Var[X]=sigma^2^/n  
+
+The histogram for 1000 averages of 40 exponentials(the sample) and its Q-Q plot positively indicate that the sample exhibits characteristics of a normal distribution according to the Central Limit Theorem.
+
+Additionally just taking 1000 exponentials with the same random seed do not yield a similar distribution.
+
+All these points show proof that the sample is highly similar to a normal distribution based on the Central Limit Theorem.

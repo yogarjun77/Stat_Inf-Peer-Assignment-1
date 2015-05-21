@@ -1,0 +1,97 @@
+---
+title: "Studying effect of vitamin C on teeth growth of guinea pigs"
+author: "yogarjun77"
+date: "Friday, May 22, 2015"
+output: html_document
+---
+
+**Description of data:**  
+
+The data consists of measurements of the mean length of the odontoblast cells harvested from the incisor teeth of a population of 60 guinea pigs. These animals were divided into 6 groups of 10 and consistently fed a diet with one of 6 Vitamin C supplement regimes for a period of 42 days. The Vitamin C was administered either in the form of Orange Juice (OJ) or chemically pure Vitamin C in aqueous solution (VC). Each animal received the same daily dosage of Vitamin C (either 0.5, 1.0 or 2.0 milligrams) consistently. Since each combination of supplement type and dosage was given to 10 randomly selected animals this required a total of 60 animals for the study. After 42 days, the animals were euthanized, their incisor teeth were harvested and subject to analysis via optical microscopy to determine the length (in microns) of the odontoblast cells (the layer between the pulp and the dentine). The ToothGrowth data set therefore consists of 60 observations of the 3 variables - mean length of odontoblasts (microns), supplement type (OJ or VC) and Vitamin C dosage (milligrams/day).  
+
+**1. Exploratory Data Analysis**  
+
+Load the ToothGrowth data, necessary libraries and perform some basic analysis.
+
+a) Quick overview of the data
+```{r load libraries and quick overview}
+
+library(datasets)
+library(dplyr)
+library(ggplot2)
+ 
+#Load Dataset
+data(ToothGrowth)  
+
+#Preview dataset
+head(ToothGrowth)  
+
+#Dataset dimension
+dim(ToothGrowth)
+
+#Dataset summary
+str(ToothGrowth) 
+summary(ToothGrowth)
+```
+60 rows of data - 10 subjects for each case with tooth length measurement and varying by:  
+        i)  supplement - OJ or VC and dose   
+        ii) dose - 0.5, 1.0 and 2.0 mg  
+        
+b) Boxplot to summarize the data
+
+
+```{r boxplot}
+p <- ggplot(ToothGrowth, aes(factor(dose), len)) + geom_boxplot(fill="lightblue") 
+
+p + facet_wrap(~supp, ncol = 2) + labs(x="dose", y="length", title = "Tooth Growth Data by Dose and Supplement")+ theme_bw()
+```
+The boxplot compares OJ and VC data side by side - note the outliers
+
+c) Group data and arrange in order
+TG <- ToothGrowth %>% group_by(supp, dose)%>% arrange(dose, len)
+
+
+2) Provide a basic summary of the data.
+
+Mean, var, sd, median, table , sum
+Overall observation based on boxplot
+
+3) Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches
+
+worth considering)
+
+a) by supp Since there are not control group in the dataset, our hypothesis for comparison would be as follows:
+
+VC_a <- VC %>% group_by(dose)%>% summarize(count_VC = length(len), sum_VC = sum(len), mean_VC = mean(len), SD_VC = sd(len))
+
+VC_a
+
+dose count sum mean SD 1 0.5 10 79.8 7.98 2.746634 2 1.0 10 167.7 16.77 2.515309 3 2.0 10 261.4 26.14 4.797731
+
+Comparing
+
+a) supp_sum <- merge(VC_a, OJ_a)
+
+dose count_VC sum_VC mean_VC SD_VC count_OJ sum_OJ mean_OJ SD_OJ 1 0.5 10 79.8 7.98 2.746634 10 132.3 13.23 4.459709 2 1.0 10 167.7 16.77 2.515309 10 227.0 22.70 3.910953 3 2.0 10 261.4 26.14 4.797731 10 260.6 26.06 2.655058
+
+supp_sum$md <- supp_sum
+
+95% confidence interval
+
+mean
+
+OJ_a <- OJ %>% group_by(dose)%>% summarize(count_OJ = length(len), sum_OJ = sum(len), mean_OJ = mean(len), SD_OJ = sd(len)) OJ_a
+
+dose count sum mean SD 1 0.5 10 132.3 13.23 4.459709 2 1.0 10 227.0 22.70 3.910953 3 2.0 10 260.6 26.06 2.655058
+
+H0 - mean of difference in length between VC and OJ is equal to zero since there is no difference Ha - mean of difference in length not equal to zero
+
+b) by dose Since there is no control group, our hypothesis for comparison would be as follows:
+
+a) Compare 0.5 to 1.0 Ho - mean of difference is zero
+
+b) Compare 1.0 to 2.0
+
+c) Compare 0.5 to 2.0
+
+4) State your conclusions and the assumptions needed for your conclusions.
