@@ -1,97 +1,195 @@
 ---
-title: "Studying effect of vitamin C on teeth growth of guinea pigs"
+title: "Effect of Vitamin C on Tooth Growth of Guinea Pigs"
 author: "yogarjun77"
 date: "Friday, May 22, 2015"
-output: html_document
+output: pdf_document
 ---
+##**Description of experiment:**  
+The response is the length of odontoblasts (teeth) in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1, and 2 mg) with each of two delivery methods (orange juice or ascorbic acid).  
+Source: C. I. Bliss (1952) The Statistics of Bioassay. Academic Press.  
 
-**Description of data:**  
+##**1. Exploratory Data Analysis**  
 
-The data consists of measurements of the mean length of the odontoblast cells harvested from the incisor teeth of a population of 60 guinea pigs. These animals were divided into 6 groups of 10 and consistently fed a diet with one of 6 Vitamin C supplement regimes for a period of 42 days. The Vitamin C was administered either in the form of Orange Juice (OJ) or chemically pure Vitamin C in aqueous solution (VC). Each animal received the same daily dosage of Vitamin C (either 0.5, 1.0 or 2.0 milligrams) consistently. Since each combination of supplement type and dosage was given to 10 randomly selected animals this required a total of 60 animals for the study. After 42 days, the animals were euthanized, their incisor teeth were harvested and subject to analysis via optical microscopy to determine the length (in microns) of the odontoblast cells (the layer between the pulp and the dentine). The ToothGrowth data set therefore consists of 60 observations of the 3 variables - mean length of odontoblasts (microns), supplement type (OJ or VC) and Vitamin C dosage (milligrams/day).  
-
-**1. Exploratory Data Analysis**  
+**a) Quick overview of the data  **
 
 Load the ToothGrowth data, necessary libraries and perform some basic analysis.
-
-a) Quick overview of the data
-```{r load libraries and quick overview}
-
+```{r load libraries and quick overview, message = FALSE}
 library(datasets)
-library(dplyr)
-library(ggplot2)
- 
-#Load Dataset
 data(ToothGrowth)  
-
-#Preview dataset
-head(ToothGrowth)  
-
-#Dataset dimension
-dim(ToothGrowth)
-
 #Dataset summary
 str(ToothGrowth) 
-summary(ToothGrowth)
 ```
-60 rows of data - 10 subjects for each case with tooth length measurement and varying by:  
-        i)  supplement - OJ or VC and dose   
-        ii) dose - 0.5, 1.0 and 2.0 mg  
-        
-b) Boxplot to summarize the data
+
+**b)  Summary of data**  
+
+60 rows of data - 10 subjects for each case with tooth length measurement (in microns) and varying by:  
+        i)  vitamin C supplement - OJ (orange juice) or VC (aqeuous solution)   
+        ii) dose - 0.5, 1.0 and 2.0 mg
+```{r sep table1, echo = FALSE, message = FALSE}  
+library(dplyr)
+OJ<- ToothGrowth %>%  group_by(supp,dose)%>%  filter(supp == "OJ")%>%  
+        select(supp, dose, len)%>%  
+        summarize(subjects = length(len), avg_length_gain = mean(len)/length(len), SD = sd(len)) 
+VC<- ToothGrowth %>%  group_by(supp,dose)%>%  filter(supp == "VC")%>%  
+        select(supp, dose, len)%>%  
+        summarize(subjects = length(len), avg_length_gain = mean(len)/length(len), SD = sd(len))  
+```
+
+```{r summarized table OJ}
+# Summarized table for Orange Juice - code in Appendix 1(a)
+OJ
+```
+\pagebreak
+```{r summarized table VC}
+#Summarized table for aqueous solution of Vitamin C - code in Appendix 1(a)
+VC  
+```  
+
+**Boxplot to summarize the data  (code shown in Appendix 1(b))**
 
 
-```{r boxplot}
+```{r boxplot, echo = FALSE, fig.weight = 4, fig.width = 7}
+library(ggplot2)
 p <- ggplot(ToothGrowth, aes(factor(dose), len)) + geom_boxplot(fill="lightblue") 
 
-p + facet_wrap(~supp, ncol = 2) + labs(x="dose", y="length", title = "Tooth Growth Data by Dose and Supplement")+ theme_bw()
+p + facet_wrap(~supp, ncol = 2) + labs(x="Vitamin C Dose (mg)", y="Tooth Length (microns)", title = "Tooth Growth Data by Vitamin C Dose and Supplement Type")+ theme_bw()  
+```   
+  
+Based on the tables and boxplot we can come up with the following observations:  
+        i) Overall average length gain(growth) is higher in subjects fed Orange Juice    
+        ii) Overall increase in the dose results in increases of the average tooth length  
+        iii) For per subject average growth between doses of 1.0 to 2.0 of same supplement , OJ difference is smaller (0.3 microns) compared to  VC (0.9 microns)  
+        iv) Average growth per subject peaks at around 2.6 microns for both supplements for dose of 2.0 mg  
+
+\pagebreak 
+
+##**3. Statistical Inferencing**  
+
+We use statistical methods to understand if the experiment validly represents the behaviour of the population for the following conclusion:  
+
+**a) Vitamin C supplement type influences tooth growth of guinea pigs - Compare OJ and VC for similar dose.**  
+
+Null Hypothesis, *Ho:  mean(OJ) - mean(VC) = 0 for same doses  *
+
+```{r supp data sets}
+#Create the following vectors to ease calculation  different scenarios:
+OJ_05 <- ToothGrowth %>% filter(supp=="OJ", dose == 1.0)%>% select(len)
+OJ_1 <- ToothGrowth %>% filter(supp=="OJ", dose == 1.0)%>% select(len)
+OJ_2 <- ToothGrowth %>% filter(supp=="OJ", dose == 2.0)%>% select(len)
+VC_05 <- ToothGrowth %>% filter(supp=="VC", dose == 0.5)%>% select(len)
+VC_1 <- ToothGrowth %>% filter(supp=="VC", dose == 1.0)%>% select(len)
+VC_2 <- ToothGrowth %>% filter(supp=="VC", dose == 2.0)%>% select(len)
+```  
+
+
+T-Tests OJ vs VC  for 95% confidence interval  
+```{r t test OJ vs VC, eval = FALSE}  
+t.test(OJ_05, VC_05, paired = FALSE, var.equal = FALSE) 
+t.test(OJ_1, VC_1, paired = FALSE, var.equal = FALSE) 
+t.test(OJ_2, VC_2, paired = FALSE, var.equal = FALSE) 
+```  
+
+Individual results for the tests are shown in Appendix 1  
+
+Output of 95% confidence level Student's t-test is summarized in Table 1 below:  
+
+Dose(mg)   |   df       |lower-t value | upper t-value | p-value  | Result
+---------- |  --------- |  ----------- | ------------- |  ------- | ----------
+0.5        |  16.141    | 11.51851     | 17.92149      | 3.655e-08| Ho is false
+1.0        |  15.358    | 2.802148     | 9.057852      |0.001038  | Ho is false
+2.0        |  14.04     | -3.79807     | 3.63807       |0.9639    | Ho is true
+
+**Remarks  **
+Comparing OJ vs VC for similar dosage levels, t-value is greater than 0 and greater than the p-value for 0.5 mg and 1.0 mg respectively. However for 2.0 mg, the t-value lies between 0 and p-value falls in the range. So this means for 2.0 mg there is no significant difference between Vitamin C supplements.
+
+
+**b) Vitamin C supplement improves tooth growth of guinea pigs - Compare by dose**  
+
+Here OJ and VC results for same dose are combined as a set. This is because the purpose is to see if the dose influences the growth. Assuming the supplement type does not matter because overall growth is directly proportionate to dose for either supplement.  
+
+Null Hypothesis:  
+*Ho:  mean(d1) - mean(d05) > 0 for dose 0.5 mg compared to 1.0 mg  *  
+*Ho:  mean(d2) - mean(d1)  > 0 for dose 2.0 mg compared to 1.0 mg  *
+
+Create the following vectors to ease calculation for different scenarios:  
+```{r dose datasets}
+d05 <- ToothGrowth %>% filter(dose == 0.5)%>% select(len)
+d1 <- ToothGrowth %>% filter(dose == 1.0)%>% select(len)
+d2 <- ToothGrowth %>% filter(dose == 2.0)%>% select(len)
+```  
+
+\pagebreak
+T-Tests for 95% confidence interval comparing dosage  
+
+```{r dose t tests, eval = FALSE}
+
+t.test(d1, d05, paired = FALSE, var.equal = FALSE) 
+t.test(d2, d1, paired = FALSE, var.equal = FALSE) 
 ```
-The boxplot compares OJ and VC data side by side - note the outliers
 
-c) Group data and arrange in order
-TG <- ToothGrowth %>% group_by(supp, dose)%>% arrange(dose, len)
+Individual results for the tests are shown in Appendix 2 
+
+Output is summarized in Table 2 below:  
+
+Dose(mg)   |   df       |lower-t value | upper t-value | p-value  | Result
+---------- |  --------- |  ----------- | ------------- |  ------- | ----------
+1.0 vs 0.5 |  37.986    | 6.276219     | 11.983781     | 1.268e-07| Ho is false
+2.0 vs 1.0 |  37.101    | 3.733519     | 8.996481      |1.906e-05 | Ho is false
+
+**Remarks  **
+Comparing 1.0 mg vs 0.5 mg and 2.0 mg vs 1.0 mg, t-confidence level is greater than 0 and greater than the p-value. This positively confirms higher dosage results in longer tooth growth for the 95% confidence level and dosage tested.  
+
+***
+##**4) Conclusions and the assumptions.**  
+
+The t-value and p-values comparison are sufficient to deduce if Ho is true or false as summarized in the respective tables. Below are the conclusions derived from the statistical inference and data analysis:  
+
+a) For dose 0.5 mg and 1.0 mg guinea pigs fed with orange juice have higher tooth growth compared to those fed with aqueous solution of vitamin C.  
+b) For dose 2.0 mg, both source of vitamin C do not exhibit significant difference on the tooth growth  
+c) Higher dose of vitamin C positively influences the tooth growth of the guinea pigs  
+
+**Assumptions:  **
+Randomized experiment and variance are unequal  \pagebreak 
 
 
-2) Provide a basic summary of the data.
+##**Appendix 1**    
 
-Mean, var, sd, median, table , sum
-Overall observation based on boxplot
+**a) Sumary Table Code**  
+```{r sep table2}   
+OJ<- ToothGrowth %>%  group_by(supp,dose)%>%  filter(supp == "OJ")%>%  
+   select(supp, dose, len)%>%  
+        summarize(subjects = length(len), 
+                  avg_length_gain = mean(len)/length(len), SD = sd(len))
 
-3) Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches
+VC<- ToothGrowth %>%   group_by(supp,dose)%>%  filter(supp == "VC")%>%  
+        select(supp, dose, len)%>%  
+        summarize(subjects = length(len), 
+                  avg_length_gain = mean(len)/length(len), SD = sd(len))  
+```
+**b) Code for boxplot**  
+```{r boxplot2,, eval = FALSE, results = "hide"}
+p <- ggplot(ToothGrowth, aes(factor(dose), len)) + geom_boxplot(fill="lightblue") 
 
-worth considering)
+p + facet_wrap(~supp, ncol = 2) + 
+        labs(x="Vitamin C Dose (mg)", y="Tooth Length (microns)", 
+             title = "Tooth Growth Data by Vitamin C Dose and Supplement Type")+         
+                theme_bw() 
+```   
+***
+##**Appendix 2**
+**Student's t test ouput for OJ vs VC comparison**  
 
-a) by supp Since there are not control group in the dataset, our hypothesis for comparison would be as follows:
+```{r t tests OJ vs VC}  
+t.test(OJ_05, VC_05, paired = FALSE, var.equal = FALSE)  
+t.test(OJ_1, VC_1, paired = FALSE, var.equal = FALSE)  
+t.test(OJ_2, VC_2, paired = FALSE, var.equal = FALSE)   
+```   
+***
+##**Appendix 3**
 
-VC_a <- VC %>% group_by(dose)%>% summarize(count_VC = length(len), sum_VC = sum(len), mean_VC = mean(len), SD_VC = sd(len))
+**Student's t test ouput for dosage comparison**  
 
-VC_a
-
-dose count sum mean SD 1 0.5 10 79.8 7.98 2.746634 2 1.0 10 167.7 16.77 2.515309 3 2.0 10 261.4 26.14 4.797731
-
-Comparing
-
-a) supp_sum <- merge(VC_a, OJ_a)
-
-dose count_VC sum_VC mean_VC SD_VC count_OJ sum_OJ mean_OJ SD_OJ 1 0.5 10 79.8 7.98 2.746634 10 132.3 13.23 4.459709 2 1.0 10 167.7 16.77 2.515309 10 227.0 22.70 3.910953 3 2.0 10 261.4 26.14 4.797731 10 260.6 26.06 2.655058
-
-supp_sum$md <- supp_sum
-
-95% confidence interval
-
-mean
-
-OJ_a <- OJ %>% group_by(dose)%>% summarize(count_OJ = length(len), sum_OJ = sum(len), mean_OJ = mean(len), SD_OJ = sd(len)) OJ_a
-
-dose count sum mean SD 1 0.5 10 132.3 13.23 4.459709 2 1.0 10 227.0 22.70 3.910953 3 2.0 10 260.6 26.06 2.655058
-
-H0 - mean of difference in length between VC and OJ is equal to zero since there is no difference Ha - mean of difference in length not equal to zero
-
-b) by dose Since there is no control group, our hypothesis for comparison would be as follows:
-
-a) Compare 0.5 to 1.0 Ho - mean of difference is zero
-
-b) Compare 1.0 to 2.0
-
-c) Compare 0.5 to 2.0
-
-4) State your conclusions and the assumptions needed for your conclusions.
+```{r t tests dosage compared}  
+t.test(d1, d05, paired = FALSE, var.equal = FALSE)   
+t.test(d2, d1, paired = FALSE, var.equal = FALSE)   
+```  

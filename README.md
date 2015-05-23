@@ -101,7 +101,7 @@ s_2 <- ToothGrowth %>%
 T-Tests
 t.test(s_1, s_05, var.equal = FALSE)
 t.test(s_2, s_1, var.equal = FALSE)
-t.test(s_2, s_05, var.equal = FALSE)
+
 
 
 
